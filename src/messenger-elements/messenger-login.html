@@ -1,0 +1,69 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-checkbox/paper-checkbox.html">
+<link rel="import" href="../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../bower_components/polymerfire/firebase-auth.html">
+
+<dom-module id="messenger-login">
+    <template>
+        <style>
+            :host {
+                display: block;
+            }
+            paper-button {
+                color: white;
+                margin: 1em 0 0 0;
+                background-color: var(--accent-color);
+            }
+        </style>
+
+        <firebase-auth id="auth"></firebase-auth>
+
+        <form is="iron-form" id="form">
+            <paper-input label="Correo electrónico" type="email" required="true" id="email" value="{{email}}"></paper-input>
+            <paper-input label="Contraseña" type="password" required="true" id="password" value="{{password}}"></paper-input>
+
+            <paper-checkbox id="checkbox" active="{{signUp}}">Crear Nueva Cuenta</paper-checkbox>
+
+            <div>
+                <paper-button raised id="button">Ingresar</paper-button>
+            </div>
+        </form>
+    </template>
+
+    <script>
+        Polymer({
+            is: "messenger-login",
+            properties: {
+                email: String,
+                password: String,
+                signUp: Boolean
+            },
+            ready: function () {
+                this.$.button.addEventListener("click", () => this.sendForm())
+            },
+            sendForm: function () {
+                if (this.signUp) {
+                    this.$.auth.createUserWithEmailAndPassword(this.email, this.password)
+                            .then((user) => {
+                        this.createUser(user)
+                })
+                } else {
+                    this.$.auth.signInWithEmailAndPassword(this.email, this.password)
+                            .then(function () {
+                                console.log("Usuario Logeado")
+                            })
+                }
+            },
+            createUser: function (firebaseUser) {
+                firebase.database().ref("/user/" + firebaseUser.uid).set({
+                    name: firebaseUser.email,
+                    email: firebaseUser.email,
+                    uid: firebaseUser.uid,
+                    photoURL: "https://i.ytimg.com/vi/EfwPqRYNgaE/hqdefault.jpg"
+                })
+            }
+        })
+    </script>
+</dom-module>
